@@ -1,0 +1,26 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Create New Page
+{% endblock %}
+
+{% block body %}
+
+{% if message %}
+
+<div style="width: 70%; text-align: center; background-color: rgba(255, 179, 179, 0.3); color: #ff0000;"><h2>{{ message }}</h2></div>
+
+{% endif %}
+
+    <h3>Enter your page name and content in md style</h3>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div style="width: 70%;">
+            <br>
+            <div>{{ form }}</div>
+            <br>
+            <div style="width: 100%; text-align: center;"><input type="submit" value="Save"></div>
+        </div>
+    </form>
+{% endblock %}
