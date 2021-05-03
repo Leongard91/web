@@ -1,12 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 import os
-<<<<<<< HEAD
-
-=======
 from django.core.exceptions import ValidationError
 from datetime import datetime
->>>>>>> 033d65887f968d7b50687a8ec462b81c16c05a9a
 
 class User(AbstractUser):
     phone = models.CharField(max_length=20, blank=True, null=True)
@@ -23,16 +19,6 @@ class Category(models.Model):
 class Listings(models.Model):
     def user_directory_path(instance, filename):
         return '{0}/media/auctions/user_{1}/{2}'.format(os.getcwd(), instance.author.id, filename)
-<<<<<<< HEAD
-    title = models.CharField(max_length=50)
-    description = models.TextField(blank=True)
-    price = models.FloatField(null=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings") 
-    image = models.FileField(upload_to=user_directory_path, null=True)
-    category = models.ManyToManyField(Category, blank=True, related_name='listings')
-    def __str__(self):
-        return f"Listing: {self.title}/ Category: '{self.category}'/ Price: ${self.price}/ Author: {self.author.username}"
-=======
     def validate_file_extension(value):
         ext = os.path.splitext(value.name)[1]
         valid_extensions = ['.png','.jpg']
@@ -56,7 +42,6 @@ class Bids(models.Model):
     listing = models.ForeignKey(Listings, on_delete=models.CASCADE, null=True, related_name='bids_on_listing')
     def __str__(self):
         return f"id: {self.pk}; bid: {self.bid}; date: {self.date}; from user: {self.from_user.username}; on listing: {self.listing.title}"
->>>>>>> 033d65887f968d7b50687a8ec462b81c16c05a9a
 
 class Comments(models.Model):
     comment = models.TextField(max_length=500)
