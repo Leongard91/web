@@ -1,0 +1,8 @@
+to cleanup imeges after deleting listing nedd to use "django-cleanup" lib
+
+1. pip install django-cleanup 
+2. into seatings: 
+"INSTALLED_APPS = (
+     ...
+    'django_cleanup', # should go after your apps
+)"

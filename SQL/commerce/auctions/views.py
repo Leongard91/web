@@ -3,8 +3,9 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.core.files.storage import FileSystemStorage
 
-from .models import User
+from .models import User, Category, Listings
 
 
 def index(request):
@@ -62,3 +63,11 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+def listing_view(request, listing_id):
+    pass
+
+
+def media(request, img_name):#!!!!!!!!!!!!!
+    pass
