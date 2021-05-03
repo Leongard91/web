@@ -1,0 +1,29 @@
+{% extends 'auctions/layout.html' %}
+
+{% block title %}
+    Create Listing
+{% endblock %}
+
+{% block body %}
+    <div style="width: 50%; margin-left: auto; margin-right: auto;">
+        <h1>Create Listing</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div>
+                <div>
+                    {{ form.title }}
+                </div>
+                <div>
+                    <section name="categoty">
+                        <option value="!!!!!!!!!!!"></option>
+                    </section>
+                </div>
+                <div style="margin-top: 20px; margin-left: 45%;">
+                    <input type="submit" value="Post Listing">
+                </div>
+            </div>
+        </form>
+    </div>
+
+{% endblock %}

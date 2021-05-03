@@ -31,6 +31,7 @@ class Listings(models.Model):
     image = models.FileField(upload_to=user_directory_path, validators=[validate_file_extension], blank=True, null=True)
     category = models.ManyToManyField(Category, blank=True, related_name='listings_on_category')
     date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    in_users_watchlists = models.ManyToManyField(User, blank=True, related_name="listings_in_watchlist")
     def __str__(self):
         return f"Listing: {self.title}/ Category: '{self.category}'/ Price: ${self.price}/ Author: {self.author.username}/ Creation date: {self.date}"
 
@@ -49,3 +50,5 @@ class Comments(models.Model):
     listing = models.ForeignKey(Listings, on_delete=models.CASCADE, null=True, related_name='comments_on_listing')
     def __str__(self):
         return f"id: {self.pk}; from: {self.from_user.username}; on listing: {self.listing.title}"
+
+

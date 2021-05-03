@@ -4,8 +4,17 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
+from django import forms
 
 from .models import User, Category, Listings
+
+
+class NewListingform(forms.Form):
+    title = forms.CharField(label="Title", max_length=30, widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'style': "width:100%; margin-bottom: 20px;"}))
+    category = forms.CharField(label="Choose Category", max_length=20, widget=forms.TextInput(attrs={'placeholder': 'Categories', 'style': "width:100%; margin-bottom: 20px;"}))
+    description = forms.CharField(label="Description", widget=forms.Textarea(attrs={"rows":5, "cols":4, 'style': "width:100%;"}))
+    price = forms.DecimalField(label="Price", decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '$ 0.00', 'style': "width:100%; margin-bottom: 20px;"}))
+    image = forms.FileField(label="Upload Photo")
 
 
 def index(request):
@@ -66,8 +75,12 @@ def register(request):
 
 
 def listing_view(request, listing_id):
-    pass
+    return HttpResponse("Not done yyet!!")
 
 
-def media(request, img_name):#!!!!!!!!!!!!!
-    pass
+def create_new(request):
+    if request.method == "POST":
+        pass
+    return render(request, "auctions/new_listing.html", {
+        "form" : NewListingform()
+    })
