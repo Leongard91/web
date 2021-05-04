@@ -8,21 +8,16 @@
     <div style="width: 50%; margin-left: auto; margin-right: auto;">
         <h1>Create Listing</h1>
 
-        <form method="POST">
+        {% if message %}
+            <div>{{ message }}</div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <div>
-                <div>
-                    {{ form.title }}
-                </div>
-                <div>
-                    <section name="categoty">
-                        <option value="!!!!!!!!!!!"></option>
-                    </section>
-                </div>
-                <div style="margin-top: 20px; margin-left: 45%;">
-                    <input type="submit" value="Post Listing">
-                </div>
+                {{ form }}
             </div>
+            <div><input type="submit" name="submit" id="submit_id" value="Publish Listing"></div>
         </form>
     </div>
 

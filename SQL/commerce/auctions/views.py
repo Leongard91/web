@@ -5,16 +5,21 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
 from django import forms
+from django.db.models import Count
 
-from .models import User, Category, Listings
+from .models import User, Category, Listings, Bids, Comments
 
 
 class NewListingform(forms.Form):
+    cat_choices= [('', 'Categories')] + [(category.pk, category.category_name) for category in Category.objects.all()]
     title = forms.CharField(label="Title", max_length=30, widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'style': "width:100%; margin-bottom: 20px;"}))
-    category = forms.CharField(label="Choose Category", max_length=20, widget=forms.TextInput(attrs={'placeholder': 'Categories', 'style': "width:100%; margin-bottom: 20px;"}))
+    category = forms.ChoiceField(label="Choose Category", widget=forms.Select(attrs={'style': "width:100%; margin-bottom: 20px;"}), choices=cat_choices)
     description = forms.CharField(label="Description", widget=forms.Textarea(attrs={"rows":5, "cols":4, 'style': "width:100%;"}))
     price = forms.DecimalField(label="Price", decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '$ 0.00', 'style': "width:100%; margin-bottom: 20px;"}))
-    image = forms.FileField(label="Upload Photo")
+    image = forms.URLField(label="Enter IMAGE's URL", widget=forms.URLInput(attrs={'placeholder': 'URL', 'style': "width:100%; margin-bottom: 20px;"}))
+
+    # if file upload model
+    #image = forms.FileField(label="Upload Photo", widget=forms.FileInput(attrs={'style': "width:100%; margin-bottom: 20px;"}))
 
 
 def index(request):
@@ -32,6 +37,7 @@ def login_view(request):
         # Check if authentication successful
         if user is not None:
             login(request, user)
+            request.session['user_id'] = User.objects.get(username=username).pk
             return HttpResponseRedirect(reverse("index"))
         else:
             return render(request, "auctions/login.html", {
@@ -69,18 +75,45 @@ def register(request):
                 "message": "Username already taken."
             })
         login(request, user)
+        request.session['user_id'] = User.objects.get(username=username).pk
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
 
 
 def listing_view(request, listing_id):
-    return HttpResponse("Not done yyet!!")
+    if request.method == 'POST':
+        pass
+    form = Listings.objects.get(pk=listing_id)
+    bids_numb = len(form.bids_on_listing.filter(listing=form))
+    return render(request, "auctions/listing.html", {
+        "form": form,
+        'bids_numb': bids_numb
+    })
 
 
 def create_new(request):
     if request.method == "POST":
-        pass
+        form = NewListingform(request.POST, request.FILES)
+        if form.is_valid():
+            title = form.cleaned_data['title']
+            description = form.cleaned_data['description']
+            price = form.cleaned_data['price']
+            author = User.objects.get(pk=request.session['user_id'])
+            image = form.cleaned_data['image']  # if file upload model : image = request.FILES['image']
+            category = Category.objects.get(pk=form.cleaned_data['category'])
+            try:
+                new_listing = Listings(title=title, description=description, price=price, author=author, image=image)
+                new_listing.save()
+                new_listing.category.add(category)
+            except IntegrityError: 
+                return render(request, "auctions/new_listing.html", {
+                "message": "Insert Error."
+                })
+            return HttpResponseRedirect(f"listings/{new_listing.pk}")
+        return render(request, "auctions/new_listing.html", {
+            "message": form.errors })
+
     return render(request, "auctions/new_listing.html", {
         "form" : NewListingform()
     })

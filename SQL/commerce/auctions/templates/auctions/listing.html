@@ -1,0 +1,36 @@
+{% extends 'auctions/layout.html' %}
+
+{% block title %}
+    Listing
+{% endblock %}
+
+{% block body %}
+
+<h2>Listing: {{ form.title }}</h2>
+
+<div><img src="{{ form.image }}" alt="Listing image"></div>
+
+<div>{{ form.description }}</div>
+
+<div>{{ form.price }}</div>
+
+<div>
+    {{ bids_numb }} bid(s) so far. Yoyr bid is the current bid.
+    <form method='POST'>
+        <input type="number" name="bid" id="bid_id" placeholder="Bid" min="{{ form.price }}">
+        <input type="submit" name="submit" id="submit_id" value="Place Bid">
+    </form>
+</div>
+
+<div>
+    <h3>Details</h3>
+    <ul>
+        <li>Listed by: {{ form.author.username }}</li>
+        {% if len(form.category) > 0 %!!!!!!!!!!!!!!!
+            <li>Category</li>
+
+    </ul>
+
+</div>
+
+{% endblock %}

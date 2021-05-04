@@ -23,6 +23,7 @@ urlpatterns = [
     path("", include("auctions.urls"))
 ]
 
+# if file upload model:
 # delete rows 27-28 if on real server
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+#if settings.DEBUG:
+    #urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
