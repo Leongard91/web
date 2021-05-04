@@ -17,7 +17,7 @@
 <div>
     {{ bids_numb }} bid(s) so far. Yoyr bid is the current bid.
     <form method='POST'>
-        <input type="number" name="bid" id="bid_id" placeholder="Bid" min="{{ form.price }}">
+        <input type="number" name="bid" id="bid_id" placeholder="Bid">
         <input type="submit" name="submit" id="submit_id" value="Place Bid">
     </form>
 </div>
@@ -26,9 +26,10 @@
     <h3>Details</h3>
     <ul>
         <li>Listed by: {{ form.author.username }}</li>
-        {% if len(form.category) > 0 %!!!!!!!!!!!!!!!
-            <li>Category</li>
-
+        {% if len(form.category.all()) > 0 %}
+            <li>Category: {{ cat_list }}</li>
+        {% else %}
+            <li>Cetegory: No Category Listed</li>
     </ul>
 
 </div>

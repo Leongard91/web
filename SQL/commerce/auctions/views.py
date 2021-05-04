@@ -85,10 +85,12 @@ def listing_view(request, listing_id):
     if request.method == 'POST':
         pass
     form = Listings.objects.get(pk=listing_id)
+    cat_list = ', '.join([ategory.category_name for category in form.category.all()])
     bids_numb = len(form.bids_on_listing.filter(listing=form))
     return render(request, "auctions/listing.html", {
         "form": form,
-        'bids_numb': bids_numb
+        'bids_numb': bids_numb,
+        'cat_list': cat_list
     })
 
 

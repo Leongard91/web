@@ -25,14 +25,16 @@ class Listings(models.Model):
     #    valid_extensions = ['.png','.jpg']
     #    if not ext in valid_extensions:
     #        raise ValidationError(u'Need png or jpg image to be uploaded')
+    # if file upload model : image = models.FileField(upload_to=user_directory_path, validators=[validate_file_extension], blank=True, null=True)
     title = models.CharField(max_length=50)
     description = models.TextField(blank=True)
     price = models.FloatField(null=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings_from_user") 
-    image = models.URLField(default='https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png')  # if file upload model : image = models.FileField(upload_to=user_directory_path, validators=[validate_file_extension], blank=True, null=True)
+    image = models.URLField(default='https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png') 
     category = models.ManyToManyField(Category, blank=True, related_name='listings_on_category')
     date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     in_users_watchlists = models.ManyToManyField(User, blank=True, related_name="listings_in_watchlist")
+    winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='won_actions')
     def __str__(self):
         return f"Listing: {self.title}/ Category: '{self.category}'/ Price: ${self.price}/ Author: {self.author.username}/ Creation date: {self.date}"
 
