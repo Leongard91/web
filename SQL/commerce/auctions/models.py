@@ -35,8 +35,9 @@ class Listings(models.Model):
     date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     in_users_watchlists = models.ManyToManyField(User, blank=True, related_name="listings_in_watchlist")
     winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='won_actions', blank=True, null=True)
+    status= models.CharField(max_length=10, choices=(('a','active'), ('s','sold'), ('d','deleted')), null=True, blank=True)
     def __str__(self):
-        return f"id: {self.pk}/ Listing: {self.title}/ Category: '{self.category}'/ Price: ${self.price}/ Author: {self.author.username}/ Creation date: {self.date}"
+        return f"id: {self.pk}/ Listing: {self.title}/ Status: {self.status}/ Category: '{self.category}'/ Price: ${self.price}/ Author: {self.author.username}/ Creation date: {self.date}"
 
 
 class Bids(models.Model):

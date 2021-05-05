@@ -1,6 +1,24 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+    {% if message %}
+    <div id='message' style="width: 100%; 
+    text-align: center; 
+    margin-top: auto; 
+    margin-bottom: auto; 
+    background-color: rgba(255, 179, 179, 0.3); 
+    color: #ff0000;"><h2>{{ message }}</h2></div>
+    {% endif %}
+
+    {% if info %}
+    <div id='info' style="width: 100%; 
+    text-align: center; 
+    margin-top: auto; 
+    margin-bottom: auto; 
+    background-color: rgba(184, 179, 255, 0.3); 
+    color: #2f00ff;"><h2>{{ info }}</h2></div>
+    {% endif %}
+    
     <h2>Active Listings</h2>
 
     TODO

@@ -7,7 +7,21 @@
 {% block body %}
 
 {% if message %}
-    <div id='message'><h2>{{ message }}</h2></div>
+    <div id='message' style="width: 100%; 
+    text-align: center; 
+    margin-top: auto; 
+    margin-bottom: auto; 
+    background-color: rgba(255, 179, 179, 0.3); 
+    color: #ff0000;"><h2>{{ message }}</h2></div>
+{% endif %}
+
+{% if info %}
+    <div id='info' style="width: 100%; 
+    text-align: center; 
+    margin-top: auto; 
+    margin-bottom: auto; 
+    background-color: rgba(184, 179, 255, 0.3); 
+    color: #2f00ff;"><h2>{{ info }}</h2></div>
 {% endif %}
 
 <h2>Listing: {{ form.title }}</h2>
@@ -17,7 +31,7 @@
         {% if in_watchlist %}
             <form method="POST">
                 {% csrf_token %}
-                <button name="watchlist_add" value='remove'>Remove from Watchlist</button>
+                <button name="watchlist" value='remove'>Remove from Watchlist</button>
             </form>
         {% else %}
             <form method="POST">
@@ -28,7 +42,7 @@
     {% endif %}
 </div>
 
-<div><img src="{{ form.image }}" alt="Listing image"></div>
+<div><img src="{{ form.image }}" alt="Listing image" width="30%"></div>
 
 <div>{{ form.description }}</div>
 
@@ -40,11 +54,22 @@
     {% else %}
         <div>Current max bid: {{ max_bid_html }}</div>
     {% endif %}
-    <form method='POST'>
-        {% csrf_token %}
-        <input type="number" name="bid" id="bid_id" placeholder="Bid">
-        <input type="submit" name="submit" id="submit_id" value="Place Bid">
-    </form>
+    {% if user.is_authenticated %}
+        {% if form.status == 'a' %}
+            <form method='POST'>
+                {% csrf_token %}
+                <input type="number" name="bid" id="bid_id" placeholder="Bid">
+                <input type="submit" name="submit" id="submit_id" value="Place Bid">
+            </form>
+        {% elif form.status == 's' %}
+            <h5>Sold for {{ max_bid_html }}</h5>
+        {% elif form.status == 'd' %}
+            <h5>Deleted by Author</h5>
+        {% endif %}
+    {% else %}
+        <h5>Login to make a bid!</h5>
+    {% endif %}
+    
 </div>
 
 <div>
@@ -57,7 +82,22 @@
             <li>Category: {{ cat_list }}</li>
         {% endif %}
     </ul>
-
 </div>
+{% if user.is_authenticated %}
+    {% if form.author.username == user.username %}
+    <div>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="submit" name="close" id="close_id" value="Close with current bid">
+        </form>
+    </div>
+    <div>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="submit" name="delete" id="delete_id" value="Delete Listing">
+        </form>
+    </div>
+    {% endif %}
+{% endif %}
 
 {% endblock %}

@@ -83,7 +83,6 @@ def register(request):
 
 def listing_view(request, listing_id):
     form = Listings.objects.get(pk=int(listing_id))
-    current_user = User.objects.get(pk=request.session['user_id'])
     
     # get all listings categories
     try: cat_list = ', '.join([category.category_name for category in form.category.all()])
@@ -91,17 +90,73 @@ def listing_view(request, listing_id):
     price = "${:,.2f}".format(form.price)
 
     # get max bid
-    try: max_bid = max([bit_object.bid for bit_object in form.bids_on_listing.all()]) #!!!!
+    try: max_bid = max([bit_object.bid for bit_object in form.bids_on_listing.all()])
     except ValueError: max_bid = 0
+    if max_bid != 0: max_bid_author = form.bids_on_listing.get(bid=max_bid).from_user
+    else: max_bid_author = form.author
     max_bid_html = "${:,.2f}".format(max_bid)
 
     # check is listing in userr watchlist
     in_watchlist = False
     in_users_watchlists = [user.pk for user in form.in_users_watchlists.all()]
-    if request.session['user_id'] in in_users_watchlists: in_watchlist = True
-    
+    try: 
+        if request.session['user_id'] in in_users_watchlists: in_watchlist = True
+    except KeyError: pass
+
+    instance = {
+        'in_watchlist': in_watchlist,
+        'in_watchlists':in_users_watchlists,
+        "form": form,
+        'price': price,
+        'max_bid': max_bid,
+        'max_bid_html': max_bid_html,
+        'cat_list': cat_list
+    }
+
+    # check is user winner
+    try:
+        if max_bid_author.pk == request.session['user_id']: 
+            instance['info'] = "Your Bid Winn! Please contact to author."
+    except KeyError: pass
+
     if request.method == 'POST':
+        current_user = User.objects.get(pk=request.session['user_id'])
         
+        # listings closing
+        if request.POST.get('close', False):
+            if max_bid == 0: max_bid_html = price
+            form.winner = max_bid_author
+            form.status = 's'
+            form.save()
+            instance['info'] = f"Sold to {max_bid_author.username} by {max_bid_html}! Please contact to winner."
+            return render(request, "auctions/listing.html", instance)
+        if request.POST.get('delete', False):
+            form.delete()
+            instance = {}
+            instance['info'] = "Deleted"
+            return render(request, "auctions/index.html", instance)
+
+        # adding bid
+        if request.POST.get('bid', False):
+            try: proposed_bid = float(request.POST.get('bid', False))
+            except TypeError: 
+                instance['message'] = "Enter a number in a bid."
+                return render(request, "auctions/listing.html", instance)
+            if proposed_bid < form.price or proposed_bid < max_bid or proposed_bid == max_bid :
+                instance['message'] = "Bid should be greater then max bid or equal the Price (if no bids)."
+                return render(request, "auctions/listing.html", instance)
+            try:
+                new_bid = Bids(bid=proposed_bid, from_user=current_user, listing=form)
+                new_bid.save()
+            except IntegrityError:
+                instance['message'] = "Invalid bid."
+                return render(request, "auctions/listing.html", instance)
+            proposed_bid_html = "${:,.2f}".format(proposed_bid)
+            instance['info'] = f"Your Bid in {proposed_bid_html} accepted!"
+            instance['max_bid'] = proposed_bid
+            instance['max_bid_html'] = proposed_bid_html
+            return render(request, "auctions/listing.html", instance)
+
         # adding(removing) to watchlist
         watchlist_command = request.POST['watchlist'] # TRY GET or chenge or replase bid post aper!!!!!!
         if watchlist_command !='' and watchlist_command == "add":
@@ -111,36 +166,12 @@ def listing_view(request, listing_id):
             form.in_users_watchlists.remove(current_user)
             return HttpResponseRedirect(f"/listings/{form.pk}")
 
-        # adding bid
-        #proposed_bid = request.POST['bid']
-        #if proposed_bid == '': proposed_bid = 0
-        #if proposed_bid < form.price or proposed_bid < max_bid:
-        #    return render(request, "auctions/listing.html", {
-        #        'message': "Bed should be greater then max bid or equal the Price (if no bids).",
-        #        'in_watchlist': in_watchlist,
-        #        'in_watchlists':in_users_watchlists,
-        #        "form": form,
-        #        'price': price,
-        #        'max_bid': max_bid,
-        #        'max_bid_html': max_bid_html,
-        #        'cat_list': cat_list
-        #    })
-        
-        
-    return render(request, "auctions/listing.html", {
-        'in_watchlist': in_watchlist,
-        'in_watchlists':in_users_watchlists,
-        "form": form,
-        'price': price,
-        'max_bid': max_bid,
-        'max_bid_html': max_bid_html,
-        'cat_list': cat_list
-    })
+    return render(request, "auctions/listing.html", instance)
 
 
 def create_new(request):
     if request.method == "POST":
-        form = NewListingform(request.POST, request.FILES)
+        form = NewListingform(request.POST) # + request.FILES
         if form.is_valid():
             title = form.cleaned_data['title']
             description = form.cleaned_data['description']
@@ -152,7 +183,7 @@ def create_new(request):
             except: category = 0
             initial = {'title':title, 'description':description, 'price':price, 'author':author, 'image':image}
             try:
-                new_listing = Listings(title=title, description=description, price=price, author=author, image=image)
+                new_listing = Listings(title=title, description=description, price=price, author=author, image=image, status='a')
                 new_listing.save()
                 if category != 0:
                     new_listing.category.add(category)
@@ -164,8 +195,8 @@ def create_new(request):
             link = f"/listings/{new_listing.pk}"
             return HttpResponseRedirect(link)
         return render(request, "auctions/new_listing.html", {
-            "message": "Form Error",
-            'form': NewListingform(initial=initial) })
+            "message": "Form Error. Please check image URL.",
+            'form': NewListingform()})
 
     return render(request, "auctions/new_listing.html", {
         "form" : NewListingform()
