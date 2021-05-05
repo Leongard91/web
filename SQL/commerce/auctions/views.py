@@ -11,12 +11,12 @@ from .models import User, Category, Listings, Bids, Comments
 
 
 class NewListingform(forms.Form):
-    cat_choices= [('', 'Categories')] + [(category.pk, category.category_name) for category in Category.objects.all()]
+    cat_choices= [(0, 'Categories')] + [(category.pk, category.category_name) for category in Category.objects.all()]
     title = forms.CharField(label="Title", max_length=30, widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'style': "width:100%; margin-bottom: 20px;"}))
-    category = forms.ChoiceField(label="Choose Category", widget=forms.Select(attrs={'style': "width:100%; margin-bottom: 20px;"}), choices=cat_choices)
+    category = forms.ChoiceField(label="Choose Category", required=False, widget=forms.Select(attrs={'style': "width:100%; margin-bottom: 20px;"}), choices=cat_choices)
     description = forms.CharField(label="Description", widget=forms.Textarea(attrs={"rows":5, "cols":4, 'style': "width:100%;"}))
     price = forms.DecimalField(label="Price", decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '$ 0.00', 'style': "width:100%; margin-bottom: 20px;"}))
-    image = forms.URLField(label="Enter IMAGE's URL", widget=forms.URLInput(attrs={'placeholder': 'URL', 'style': "width:100%; margin-bottom: 20px;"}))
+    image = forms.URLField(label="Enter IMAGE's URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'URL', 'style': "width:100%; margin-bottom: 20px;"}))
 
     # if file upload model
     #image = forms.FileField(label="Upload Photo", widget=forms.FileInput(attrs={'style': "width:100%; margin-bottom: 20px;"}))
@@ -82,14 +82,58 @@ def register(request):
 
 
 def listing_view(request, listing_id):
+    form = Listings.objects.get(pk=int(listing_id))
+    current_user = User.objects.get(pk=request.session['user_id'])
+    
+    # get all listings categories
+    try: cat_list = ', '.join([category.category_name for category in form.category.all()])
+    except: cat_list = ''
+    price = "${:,.2f}".format(form.price)
+
+    # get max bid
+    try: max_bid = max([bit_object.bid for bit_object in form.bids_on_listing.all()]) #!!!!
+    except ValueError: max_bid = 0
+    max_bid_html = "${:,.2f}".format(max_bid)
+
+    # check is listing in userr watchlist
+    in_watchlist = False
+    in_users_watchlists = [user.pk for user in form.in_users_watchlists.all()]
+    if request.session['user_id'] in in_users_watchlists: in_watchlist = True
+    
     if request.method == 'POST':
-        pass
-    form = Listings.objects.get(pk=listing_id)
-    cat_list = ', '.join([ategory.category_name for category in form.category.all()])
-    bids_numb = len(form.bids_on_listing.filter(listing=form))
+        
+        # adding(removing) to watchlist
+        watchlist_command = request.POST['watchlist'] # TRY GET or chenge or replase bid post aper!!!!!!
+        if watchlist_command !='' and watchlist_command == "add":
+            form.in_users_watchlists.add(current_user)
+            return HttpResponseRedirect(f"/listings/{form.pk}")
+        elif watchlist_command !='' and watchlist_command == "remove":
+            form.in_users_watchlists.remove(current_user)
+            return HttpResponseRedirect(f"/listings/{form.pk}")
+
+        # adding bid
+        #proposed_bid = request.POST['bid']
+        #if proposed_bid == '': proposed_bid = 0
+        #if proposed_bid < form.price or proposed_bid < max_bid:
+        #    return render(request, "auctions/listing.html", {
+        #        'message': "Bed should be greater then max bid or equal the Price (if no bids).",
+        #        'in_watchlist': in_watchlist,
+        #        'in_watchlists':in_users_watchlists,
+        #        "form": form,
+        #        'price': price,
+        #        'max_bid': max_bid,
+        #        'max_bid_html': max_bid_html,
+        #        'cat_list': cat_list
+        #    })
+        
+        
     return render(request, "auctions/listing.html", {
+        'in_watchlist': in_watchlist,
+        'in_watchlists':in_users_watchlists,
         "form": form,
-        'bids_numb': bids_numb,
+        'price': price,
+        'max_bid': max_bid,
+        'max_bid_html': max_bid_html,
         'cat_list': cat_list
     })
 
@@ -103,18 +147,25 @@ def create_new(request):
             price = form.cleaned_data['price']
             author = User.objects.get(pk=request.session['user_id'])
             image = form.cleaned_data['image']  # if file upload model : image = request.FILES['image']
-            category = Category.objects.get(pk=form.cleaned_data['category'])
+            if not 'http' in image: image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png'
+            try: category = Category.objects.get(pk=form.cleaned_data['category'])
+            except: category = 0
+            initial = {'title':title, 'description':description, 'price':price, 'author':author, 'image':image}
             try:
                 new_listing = Listings(title=title, description=description, price=price, author=author, image=image)
                 new_listing.save()
-                new_listing.category.add(category)
+                if category != 0:
+                    new_listing.category.add(category)
             except IntegrityError: 
                 return render(request, "auctions/new_listing.html", {
-                "message": "Insert Error."
+                "message": "Insert Error.",
+                'form': NewListingform(initial=initial)
                 })
-            return HttpResponseRedirect(f"listings/{new_listing.pk}")
+            link = f"/listings/{new_listing.pk}"
+            return HttpResponseRedirect(link)
         return render(request, "auctions/new_listing.html", {
-            "message": form.errors })
+            "message": "Form Error",
+            'form': NewListingform(initial=initial) })
 
     return render(request, "auctions/new_listing.html", {
         "form" : NewListingform()

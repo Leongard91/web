@@ -6,11 +6,11 @@
 
 {% block body %}
     <div style="width: 50%; margin-left: auto; margin-right: auto;">
-        <h1>Create Listing</h1>
-
         {% if message %}
-            <div>{{ message }}</div>
+            <div class='message'><h2>{{ message }}</h2></div>
         {% endif %}
+        
+        <h1>Create Listing</h1>
 
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}

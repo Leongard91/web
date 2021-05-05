@@ -6,17 +6,42 @@
 
 {% block body %}
 
+{% if message %}
+    <div id='message'><h2>{{ message }}</h2></div>
+{% endif %}
+
 <h2>Listing: {{ form.title }}</h2>
+
+<div>
+    {% if user.is_authenticated %}
+        {% if in_watchlist %}
+            <form method="POST">
+                {% csrf_token %}
+                <button name="watchlist_add" value='remove'>Remove from Watchlist</button>
+            </form>
+        {% else %}
+            <form method="POST">
+                {% csrf_token %}
+                <button name="watchlist" value='add'>Add To Watchlist</button>
+            </form>
+        {% endif %}
+    {% endif %}
+</div>
 
 <div><img src="{{ form.image }}" alt="Listing image"></div>
 
 <div>{{ form.description }}</div>
 
-<div>{{ form.price }}</div>
+<div>{{ price }}</div>
 
 <div>
-    {{ bids_numb }} bid(s) so far. Yoyr bid is the current bid.
+    {% if max_bid == 0 %}
+        <div>0 bid(s) so far. Yoyr bid is the current bid.</div>
+    {% else %}
+        <div>Current max bid: {{ max_bid_html }}</div>
+    {% endif %}
     <form method='POST'>
+        {% csrf_token %}
         <input type="number" name="bid" id="bid_id" placeholder="Bid">
         <input type="submit" name="submit" id="submit_id" value="Place Bid">
     </form>
@@ -26,10 +51,11 @@
     <h3>Details</h3>
     <ul>
         <li>Listed by: {{ form.author.username }}</li>
-        {% if len(form.category.all()) > 0 %}
-            <li>Category: {{ cat_list }}</li>
-        {% else %}
+        {% if cat_list == '' %}
             <li>Cetegory: No Category Listed</li>
+        {% else %}
+            <li>Category: {{ cat_list }}</li>
+        {% endif %}
     </ul>
 
 </div>
