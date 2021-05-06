@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.core.files.storage import FileSystemStorage
 from django import forms
 from django.db.models import Count
+from django.contrib.auth.decorators import login_required
 
 from .models import User, Category, Listings, Bids, Comments
 
@@ -23,7 +24,12 @@ class NewListingform(forms.Form):
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    instance ={}
+    forms = Listings.objects.filter(status='a')
+    if forms != None:
+        instance['forms'] = forms
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! price format
+    return render(request, "auctions/index.html", instance)
 
 
 def login_view(request):
@@ -113,15 +119,19 @@ def listing_view(request, listing_id):
         'cat_list': cat_list
     }
 
+    # get comments uder listing
+    comments = form.comments_on_listing.all().order_by('-date', '-pk')
+    if len(comments) > 0: instance['comments'] = comments
+
     # check is user winner
     try:
-        if max_bid_author.pk == request.session['user_id']: 
+        if max_bid_author.pk == request.session['user_id'] and form.status == "s": 
             instance['info'] = "Your Bid Winn! Please contact to author."
     except KeyError: pass
 
     if request.method == 'POST':
         current_user = User.objects.get(pk=request.session['user_id'])
-        
+
         # listings closing
         if request.POST.get('close', False):
             if max_bid == 0: max_bid_html = price
@@ -152,23 +162,33 @@ def listing_view(request, listing_id):
                 instance['message'] = "Invalid bid."
                 return render(request, "auctions/listing.html", instance)
             proposed_bid_html = "${:,.2f}".format(proposed_bid)
+            form.price = float(proposed_bid)
+            form.save()
+            instance['price'] = "${:,.2f}".format(proposed_bid)
             instance['info'] = f"Your Bid in {proposed_bid_html} accepted!"
             instance['max_bid'] = proposed_bid
             instance['max_bid_html'] = proposed_bid_html
             return render(request, "auctions/listing.html", instance)
 
-        # adding(removing) to watchlist
-        watchlist_command = request.POST['watchlist'] # TRY GET or chenge or replase bid post aper!!!!!!
-        if watchlist_command !='' and watchlist_command == "add":
-            form.in_users_watchlists.add(current_user)
-            return HttpResponseRedirect(f"/listings/{form.pk}")
-        elif watchlist_command !='' and watchlist_command == "remove":
-            form.in_users_watchlists.remove(current_user)
+        # adding comments
+        if request.POST.get("add_comment", False):
+            new_comment = request.POST.get("add_comment", False)
+            new_comment_in = Comments(comment=new_comment, from_user=current_user, listing=form)
+            new_comment_in.save()
             return HttpResponseRedirect(f"/listings/{form.pk}")
 
+        # adding(removing) to watchlist
+        if request.POST.get('watchlist', False):
+            watchlist_command = request.POST.get('watchlist', False) # TRY GET or chenge or replase bid post aper!!!!!!
+            if watchlist_command !='' and watchlist_command == "add":
+                form.in_users_watchlists.add(current_user)
+                return HttpResponseRedirect(f"/listings/{form.pk}")
+            elif watchlist_command !='' and watchlist_command == "remove":
+                form.in_users_watchlists.remove(current_user)
+                return HttpResponseRedirect(f"/listings/{form.pk}")
     return render(request, "auctions/listing.html", instance)
 
-
+@login_required(login_url='login')
 def create_new(request):
     if request.method == "POST":
         form = NewListingform(request.POST) # + request.FILES

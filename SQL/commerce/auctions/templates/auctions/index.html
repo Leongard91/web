@@ -2,24 +2,28 @@
 
 {% block body %}
     {% if message %}
-    <div id='message' style="width: 100%; 
-    text-align: center; 
-    margin-top: auto; 
-    margin-bottom: auto; 
-    background-color: rgba(255, 179, 179, 0.3); 
-    color: #ff0000;"><h2>{{ message }}</h2></div>
+        <div id='message' class="alert alert-danger">{{ message }}</div>
     {% endif %}
 
     {% if info %}
-    <div id='info' style="width: 100%; 
-    text-align: center; 
-    margin-top: auto; 
-    margin-bottom: auto; 
-    background-color: rgba(184, 179, 255, 0.3); 
-    color: #2f00ff;"><h2>{{ info }}</h2></div>
+        <div id='info' class="alert alert-primary" style="text-align: center;"><h2>{{ info }}</h2></div>
     {% endif %}
     
     <h2>Active Listings</h2>
+    {% if forms %}
+        {% for form in forms %}
 
-    TODO
+            <div class="row" style="border: 1px solid grey; border-radius: 5px; margin: 5px; padding: 10px;">
+                <div class="col" style="text-align: center;">
+                    <img src="{{ form.image }}" alt="listings_image" class="rounded float-start" style="max-height: 300px;">
+                </div>
+                <div class="col">
+                    <h5>{{ form.title }}</h5>
+                    <p><h6>{{ "${:,.2f}".format(form.price) }}</h6></p>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    
 {% endblock %}

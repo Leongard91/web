@@ -52,6 +52,7 @@ class Bids(models.Model):
 class Comments(models.Model):
     comment = models.TextField(max_length=500)
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="comments_from_user")
+    date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     listing = models.ForeignKey(Listings, on_delete=models.CASCADE, null=True, related_name='comments_on_listing')
     def __str__(self):
         return f"id: {self.pk}; from: {self.from_user.username}; on listing: {self.listing.title}"

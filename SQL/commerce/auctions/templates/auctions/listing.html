@@ -6,22 +6,8 @@
 
 {% block body %}
 
-{% if message %}
-    <div id='message' style="width: 100%; 
-    text-align: center; 
-    margin-top: auto; 
-    margin-bottom: auto; 
-    background-color: rgba(255, 179, 179, 0.3); 
-    color: #ff0000;"><h2>{{ message }}</h2></div>
-{% endif %}
-
 {% if info %}
-    <div id='info' style="width: 100%; 
-    text-align: center; 
-    margin-top: auto; 
-    margin-bottom: auto; 
-    background-color: rgba(184, 179, 255, 0.3); 
-    color: #2f00ff;"><h2>{{ info }}</h2></div>
+    <div id='info' class="alert alert-primary" style="text-align: center;"><h2>{{ info }}</h2></div>
 {% endif %}
 
 <h2>Listing: {{ form.title }}</h2>
@@ -31,73 +17,109 @@
         {% if in_watchlist %}
             <form method="POST">
                 {% csrf_token %}
-                <button name="watchlist" value='remove'>Remove from Watchlist</button>
+                <button name="watchlist" class="btn btn-secondary" style="font-size: 15px; padding: 5px; margin-bottom: 5px;" value='remove'>Remove from Watchlist</button>
             </form>
         {% else %}
             <form method="POST">
                 {% csrf_token %}
-                <button name="watchlist" value='add'>Add To Watchlist</button>
+                <button name="watchlist" class="btn btn-secondary" style="font-size: 15px; padding: 5px; margin-bottom: 5px;" value='add'>Add To Watchlist</button>
             </form>
         {% endif %}
     {% endif %}
 </div>
 
-<div><img src="{{ form.image }}" alt="Listing image" width="30%"></div>
+<div class="row">
+    <div class="col" style="max-width: 550px;">
+        <div><img src="{{ form.image }}" alt="Listing image" class="rounded float-start" style="max-width: 500px;"></div>
+    </div>
+    <div class="col" style="max-width: 550px;">
+        <div><p class="lh-sm">{{ form.description }}</p></div>
 
-<div>{{ form.description }}</div>
+        <div><h2>{{ price }}</h2></div>
 
-<div>{{ price }}</div>
-
-<div>
-    {% if max_bid == 0 %}
-        <div>0 bid(s) so far. Yoyr bid is the current bid.</div>
-    {% else %}
-        <div>Current max bid: {{ max_bid_html }}</div>
-    {% endif %}
-    {% if user.is_authenticated %}
-        {% if form.status == 'a' %}
-            <form method='POST'>
-                {% csrf_token %}
-                <input type="number" name="bid" id="bid_id" placeholder="Bid">
-                <input type="submit" name="submit" id="submit_id" value="Place Bid">
-            </form>
-        {% elif form.status == 's' %}
-            <h5>Sold for {{ max_bid_html }}</h5>
-        {% elif form.status == 'd' %}
-            <h5>Deleted by Author</h5>
+        {% if message %}
+            <div id='message' class="alert alert-danger">{{ message }}</div>
         {% endif %}
-    {% else %}
-        <h5>Login to make a bid!</h5>
-    {% endif %}
-    
-</div>
 
-<div>
-    <h3>Details</h3>
-    <ul>
-        <li>Listed by: {{ form.author.username }}</li>
-        {% if cat_list == '' %}
-            <li>Cetegory: No Category Listed</li>
-        {% else %}
-            <li>Category: {{ cat_list }}</li>
+        <div>
+            <p>
+                {% if max_bid == 0 %}
+                    <div>0 bid(s) so far. Yoyr bid is the current bid.</div>
+                {% endif %}
+                {% if user.is_authenticated %}
+                    {% if form.status == 'a' %}
+                        <form method='POST'>
+                            {% csrf_token %}
+                            <div class="row">
+                                    <div class="input-group mb-3" style="max-width: 200px; margin-left: 15px;">
+                                        <span class="input-group-text" style="border-top-right-radius: 0px; border-bottom-right-radius: 0px;">$</span>
+                                        <input type="number" name="bid" placeholder="Bid" class="form-control" aria-label="Amount (to the nearest dollar)">
+                                        <span class="input-group-text" style="border-top-left-radius: 0px; border-bottom-left-radius: 0px;">.00</span>
+                                    </div>
+                                    <input type="submit" name="submit" id="submit_id" value="Place Bid" class="btn btn-secondary" style="margin-left: 10px; height: 38px;">
+                            </div>
+                        </form>
+                    {% elif form.status == 's' %}
+                        <h5>Sold for {{ max_bid_html }}</h5>
+                    {% elif form.status == 'd' %}
+                        <h5>Deleted by Author</h5>
+                    {% endif %}
+                {% else %}
+                    <h5>Login to make a bid!</h5>
+                {% endif %}
+            </p> 
+        </div>
+
+        <div>
+            <h3>Details</h3>
+            <ul>
+                <li>Listed by: {{ form.author.username }}</li>
+                {% if cat_list == '' %}
+                    <li>Cetegory: No Category Listed</li>
+                {% else %}
+                    <li>Category: {{ cat_list }}</li>
+                {% endif %}
+            </ul>
+        </div>
+        {% if user.is_authenticated %}
+            {% if form.author.username == user.username %}
+            <div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input class="btn btn-outline-secondary" type="submit" name="close" id="close_id" value="Close with current bid">
+                </form>
+            </div>
+            <div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input class="btn btn-outline-secondary" style="margin-top: 5px;" type="submit" name="delete" id="delete_id" value="Delete Listing">
+                </form>
+            </div>
+            {% endif %}
         {% endif %}
-    </ul>
-</div>
+            </div>
+    </div>
+<br>
 {% if user.is_authenticated %}
-    {% if form.author.username == user.username %}
-    <div>
-        <form method="POST">
-            {% csrf_token %}
-            <input type="submit" name="close" id="close_id" value="Close with current bid">
-        </form>
-    </div>
-    <div>
-        <form method="POST">
-            {% csrf_token %}
-            <input type="submit" name="delete" id="delete_id" value="Delete Listing">
-        </form>
-    </div>
-    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        <div class="input-group mb-3" style="max-width: 825px;">
+            <input name="add_comment" type="text" class="form-control" placeholder="Write your comment..." aria-label="Recipient's username" aria-describedby="button-addon2">
+            <input type="submit" class="btn btn-outline-secondary" style="border-top-left-radius: 0px; border-bottom-left-radius: 0px;" value="Add comment">
+        </div>
+    </form>
+{% else %}
+    <h5>Login for comment.</h5>
+{% endif %}
+{% if comments %}
+    {% for comment in comments %}
+            <div>
+                <p>
+                    <div style="font-size: 12px; color: rgb(92, 92, 92);">{{ comment.date }}</div>
+                    <b>From {{ comment.from_user.username }}:</b> {{ comment.comment }}
+                </p>
+            </div>
+    {% endfor %}
 {% endif %}
 
 {% endblock %}
