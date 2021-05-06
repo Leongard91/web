@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from datetime import datetime
 
 class User(AbstractUser):
-    phone = models.CharField(max_length=20, blank=True, null=True)
+    phone = models.CharField(max_length=20)
     def __str__(self):
         return f"Username: {self.username}\nPhone: {self.phone}\nE-mail: {self.email}"
 
@@ -28,10 +28,10 @@ class Listings(models.Model):
     # if file upload model : image = models.FileField(upload_to=user_directory_path, validators=[validate_file_extension], blank=True, null=True)
     title = models.CharField(max_length=50)
     description = models.TextField(blank=True)
-    price = models.FloatField(null=True)
+    price = models.DecimalField(null=True, max_digits=7, decimal_places=2)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="listings_from_user") 
     image = models.URLField() 
-    category = models.ManyToManyField(Category, blank=True, null=True, related_name='listings_on_category')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True, related_name='listings_on_category')
     date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     in_users_watchlists = models.ManyToManyField(User, blank=True, related_name="listings_in_watchlist")
     winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='won_actions', blank=True, null=True)

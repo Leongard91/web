@@ -12,14 +12,20 @@
     <h2>Active Listings</h2>
     {% if forms %}
         {% for form in forms %}
-
-            <div class="row" style="border: 1px solid grey; border-radius: 5px; margin: 5px; padding: 10px;">
+            <div class="row" style="border: 1px solid grey; border-radius: 5px; margin: 5px; padding: 10px; margin-top: 10px;">
                 <div class="col" style="text-align: center;">
-                    <img src="{{ form.image }}" alt="listings_image" class="rounded float-start" style="max-height: 300px;">
+                    <a href="listings/{{ form.pk }}"><img src="{{ form.image }}" alt="listings_image" class="rounded float-start" style="max-height: 300px;" href="listings/{{ form.pk }}"></a>
                 </div>
                 <div class="col">
-                    <h5>{{ form.title }}</h5>
-                    <p><h6>{{ "${:,.2f}".format(form.price) }}</h6></p>
+                    <a href="listings/{{ form.pk }}"><h4>{{ form.title }}</h4></a>
+                    <p><h5>Price: ${{ form.price }}</h5></p>
+                    {% if not form.category %}
+                        Cetegory: No Category Listed
+                    {% else %}
+                        Category: {{ form.category.category_name }}
+                    {% endif %}
+                    <p class="lh-sm">{{ form.description }}</p>
+                    <div style='color: grey'>Created {{ form.date }}</div>
                 </div>
             </div>
         {% endfor %}

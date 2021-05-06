@@ -10,6 +10,8 @@ from django.contrib.auth.decorators import login_required
 
 from .models import User, Category, Listings, Bids, Comments
 
+# number near watchlist
+# request.session['watchlist_count'] = User.objects.get(pk=request.session['user_id']).listings_in_watchlist.all().count()
 
 class NewListingform(forms.Form):
     cat_choices= [(0, 'Categories')] + [(category.pk, category.category_name) for category in Category.objects.all()]
@@ -25,10 +27,9 @@ class NewListingform(forms.Form):
 
 def index(request):
     instance ={}
-    forms = Listings.objects.filter(status='a')
+    forms = Listings.objects.filter(status='a').order_by('-date','-pk')
     if forms != None:
         instance['forms'] = forms
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! price format
     return render(request, "auctions/index.html", instance)
 
 
@@ -72,6 +73,11 @@ def register(request):
                 "message": "Passwords must match."
             })
 
+        if len(phone) < 10: 
+            return render(request, "auctions/register.html", {
+                "message": "Enter phone number. (min 11 digits)"
+            })
+        
         # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password, phone=phone)
@@ -89,10 +95,6 @@ def register(request):
 
 def listing_view(request, listing_id):
     form = Listings.objects.get(pk=int(listing_id))
-    
-    # get all listings categories
-    try: cat_list = ', '.join([category.category_name for category in form.category.all()])
-    except: cat_list = ''
     price = "${:,.2f}".format(form.price)
 
     # get max bid
@@ -116,7 +118,6 @@ def listing_view(request, listing_id):
         'price': price,
         'max_bid': max_bid,
         'max_bid_html': max_bid_html,
-        'cat_list': cat_list
     }
 
     # get comments uder listing
@@ -126,7 +127,7 @@ def listing_view(request, listing_id):
     # check is user winner
     try:
         if max_bid_author.pk == request.session['user_id'] and form.status == "s": 
-            instance['info'] = "Your Bid Winn! Please contact to author."
+            instance['info'] = f"Your Bid Winn! Please contact to author ({form.author.username}, {form.author.phone})."
     except KeyError: pass
 
     if request.method == 'POST':
@@ -138,7 +139,7 @@ def listing_view(request, listing_id):
             form.winner = max_bid_author
             form.status = 's'
             form.save()
-            instance['info'] = f"Sold to {max_bid_author.username} by {max_bid_html}! Please contact to winner."
+            instance['info'] = f"Sold to {max_bid_author.username} by {max_bid_html}! Please contact to winner. (Phone: {max_bid_author.phone})"
             return render(request, "auctions/listing.html", instance)
         if request.POST.get('delete', False):
             form.delete()
@@ -199,19 +200,20 @@ def create_new(request):
             author = User.objects.get(pk=request.session['user_id'])
             image = form.cleaned_data['image']  # if file upload model : image = request.FILES['image']
             if not 'http' in image: image = 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/330px-No-Image-Placeholder.svg.png'
-            try: category = Category.objects.get(pk=form.cleaned_data['category'])
-            except: category = 0
             initial = {'title':title, 'description':description, 'price':price, 'author':author, 'image':image}
             try:
                 new_listing = Listings(title=title, description=description, price=price, author=author, image=image, status='a')
                 new_listing.save()
-                if category != 0:
-                    new_listing.category.add(category)
             except IntegrityError: 
                 return render(request, "auctions/new_listing.html", {
                 "message": "Insert Error.",
                 'form': NewListingform(initial=initial)
                 })
+            try: category = Category.objects.get(pk=form.cleaned_data['category'])
+            except: category = 0
+            if category != 0: 
+                new_listing.category = category
+                new_listing.save()
             link = f"/listings/{new_listing.pk}"
             return HttpResponseRedirect(link)
         return render(request, "auctions/new_listing.html", {
@@ -221,3 +223,25 @@ def create_new(request):
     return render(request, "auctions/new_listing.html", {
         "form" : NewListingform()
     })
+
+@login_required(login_url='login')
+def watchlist(request):
+    instance ={}
+    current_user = User.objects.get(pk=request.session['user_id'])
+    forms = current_user.listings_in_watchlist.all().order_by('-date','-pk')
+    if forms != None:
+        instance['forms'] = forms
+    
+    # remove from watchlist
+    if request.method == 'POST':
+        delete_listing_pk = request.POST.get('watchlist', False)
+        form = current_user.listings_in_watchlist.get(pk=delete_listing_pk)
+        form.in_users_watchlists.remove(current_user)
+        forms = current_user.listings_in_watchlist.all().order_by('-date','-pk')
+        if forms != None:
+            instance['forms'] = forms  
+    return render(request, "auctions/watchlist.html", instance)
+
+
+def categories(request):
+    pass

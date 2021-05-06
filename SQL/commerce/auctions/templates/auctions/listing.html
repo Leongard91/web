@@ -74,10 +74,10 @@
             <h3>Details</h3>
             <ul>
                 <li>Listed by: {{ form.author.username }}</li>
-                {% if cat_list == '' %}
+                {% if not form.category %}
                     <li>Cetegory: No Category Listed</li>
                 {% else %}
-                    <li>Category: {{ cat_list }}</li>
+                    <li>Category: {{ form.category.category_name }}</li>
                 {% endif %}
             </ul>
         </div>
