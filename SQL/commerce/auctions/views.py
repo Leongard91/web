@@ -40,11 +40,7 @@ def index(request):
     if forms != None:
         instance['forms'] = forms
 
-    # number near watchlist
-    try: watchlist_count = User.objects.get(pk=request.session['user_id']).listings_in_watchlist.all().count()
-    except: watchlist_count = 0
-    if watchlist_count > 0:
-        instance['watchlist_count'] = watchlist_count
+    watchlist_count(request, instance)
 
     return render(request, "auctions/index.html", instance)
 
@@ -277,11 +273,11 @@ def categories(request):
         cat_pk = request.POST.get('chosen_category', False)
         if cat_pk != '0':
             category = Category.objects.get(pk=cat_pk)
-            forms = category.listings_on_category.all().order_by('-date','-pk')
+            forms = category.listings_on_category.filter(status='a').order_by('-date','-pk')
             instance['forms'] = forms
             return render(request, 'auctions/categories.html', instance)
         else: 
-            no_cat_listings = Listings.objects.filter(category=None)
+            no_cat_listings = Listings.objects.filter(category=None, status='a')
             instance['forms'] = no_cat_listings
             return render(request, 'auctions/categories.html', instance)
     return render(request, 'auctions/categories.html', instance)
