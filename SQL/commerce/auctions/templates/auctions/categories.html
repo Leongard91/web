@@ -1,0 +1,50 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if message %}
+        <div id='message' class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    {% if info %}
+        <div id='info' class="alert alert-primary" style="text-align: center;"><h2>{{ info }}</h2></div>
+    {% endif %}
+    
+    <h2>Categories</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="row" style="max-width: 1100px;">
+            {% for category in categories %}
+                <div class="col" style="margin-top: 10px;">
+                    <button class="btn btn-secondary" style="width: 115px;" name='chosen_category' value='{{ category.pk }}'>{{ category.category_name }}</button>
+                </div>
+            {% endfor %}
+            <div class="col" style="margin-top: 10px;">
+                <button class="btn btn-secondary" name='chosen_category' style="width: 115px;" value="0">No category</button>
+            </div>
+        </div>
+    </form>
+
+    {% if forms %}
+        {% for form in forms %}
+            <div class="row" style="border: 1px solid grey; border-radius: 5px; margin: 5px; padding: 10px; margin-top: 10px;">
+                <div class="col" style="text-align: center;">
+                    <a href="listings/{{ form.pk }}"><img src="{{ form.image }}" alt="listings_image" class="rounded float-start" style="max-height: 300px;" href="listings/{{ form.pk }}"></a>
+                </div>
+                <div class="col">
+                    <a href="listings/{{ form.pk }}"><h4>{{ form.title }}</h4></a>
+                    <p><h5>Price: ${{ form.price }}</h5></p>
+                    {% if not form.category %}
+                        Cetegory: No Category Listed
+                    {% else %}
+                        Category: {{ form.category.category_name }}
+                    {% endif %}
+                    <p class="lh-sm">{{ form.description }}</p>
+                    <div style='color: grey'>Created {{ form.date }}</div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    
+{% endblock %}

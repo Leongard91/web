@@ -1,0 +1,38 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if message %}
+        <div id='message' class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    {% if info %}
+        <div id='info' class="alert alert-primary" style="text-align: center;"><h2>{{ info }}</h2></div>
+    {% endif %}
+    
+    <h2>Watchlist</h2>
+    {% if user.is_authenticated %}
+        {% if forms %}
+            {% for form in forms %}
+                <div class="row" style="border: 1px solid grey; border-radius: 5px; margin: 5px; padding: 10px;">
+                    <div class="col" style="text-align: center;">
+                        <a href="listings/{{ form.pk }}"><img src="{{ form.image }}" alt="listings_image" class="rounded float-start" style="max-height: 300px;" href="listings/{{ form.pk }}"></a>
+                    </div>
+                    <div class="col">
+                        <a href="listings/{{ form.pk }}"><h4>{{ form.title }}</h4></a>
+                        <p><h5>Price: ${{ form.price }}</h5></p>
+                        <p class="lh-sm">{{ form.description }}</p>
+                        <div style='color: grey'>Created {{ form.date }}</div>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <button name="watchlist" class="btn btn-secondary" style="font-size: 15px; padding: 5px; margin-bottom: 5px; margin-top: 5px;" value='{{ form.pk }}'>Remove from Watchlist</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% else %}
+        <h4>Log in to se your "Watchlist".</h4>
+    {% endif %}
+
+    
+{% endblock %}

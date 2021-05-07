@@ -1,0 +1,11 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if message %}
+        <div id='message' class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    {% if info %}
+        <div id='info' class="alert alert-primary" style="text-align: center;"><h2>{{ info }}</h2></div>
+    {% endif %}
+{% endblock %}

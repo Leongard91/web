@@ -1,0 +1,35 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    {% if message %}
+        <div id='message' class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    {% if info %}
+        <div id='info' class="alert alert-primary" style="text-align: center;"><h2>{{ info }}</h2></div>
+    {% endif %}
+    
+    <h2>Winned Listings</h2>
+    {% if forms %}
+        {% for form in forms %}
+            <div class="row" style="border: 1px solid grey; border-radius: 5px; margin: 5px; padding: 10px; margin-top: 10px;">
+                <div class="col" style="text-align: center;">
+                    <a href="listings/{{ form.pk }}"><img src="{{ form.image }}" alt="listings_image" class="rounded float-start" style="max-height: 300px;" href="listings/{{ form.pk }}"></a>
+                </div>
+                <div class="col">
+                    <a href="listings/{{ form.pk }}"><h4>{{ form.title }}</h4></a>
+                    <p><h5>Price: ${{ form.price }} <b>YOU WINN!</b></h5></p>
+                    {% if not form.category %}
+                        Cetegory: No Category Listed
+                    {% else %}
+                        Category: {{ form.category.category_name }}
+                    {% endif %}
+                    <p class="lh-sm">{{ form.description }}</p>
+                    <div style='color: grey'>Created {{ form.date }}</div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    
+{% endblock %}
