@@ -41,7 +41,7 @@ class Listings(models.Model):
 
 
 class Bids(models.Model):
-    bid = models.FloatField()
+    bid = models.DecimalField(max_digits=7, decimal_places=2)
     date = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name="bids_from_user")
     listing = models.ForeignKey(Listings, on_delete=models.CASCADE, null=True, related_name='bids_on_listing')

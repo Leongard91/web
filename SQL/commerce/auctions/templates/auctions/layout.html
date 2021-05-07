@@ -21,10 +21,13 @@
                 <a class="nav-link" href="{% url 'index' %}">Active Listings</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="">Categories</a>
+                <a class="nav-link" href="{% url 'categories' %}">Categories</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'watchlist' %}">Watchlist ({{}})</a>
+                <a class="nav-link" href="{% url 'watchlist' %}">Watchlist {% if watchlist_count %}<b class="btn btn-secondary" style="padding: 2px; font-size: 12px; padding-top: 0px; padding-bottom: 0px;">{{ watchlist_count }}</b>{% endif %}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'winn' %}">Winned Listings {% if winn_count %}<b class="btn btn-secondary" style="padding: 2px; font-size: 12px; padding-top: 0px; padding-bottom: 0px;">{{ winn_count }}</b>{% endif %}</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'create_listing' %}">Create Listing</a>

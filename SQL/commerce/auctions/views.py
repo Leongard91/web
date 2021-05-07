@@ -11,15 +11,24 @@ from django.contrib.auth.decorators import login_required
 from .models import User, Category, Listings, Bids, Comments
 
 # number near watchlist
-# request.session['watchlist_count'] = User.objects.get(pk=request.session['user_id']).listings_in_watchlist.all().count()
+def watchlist_count(request, instance):
+    try: watchlist_count = User.objects.get(pk=request.session['user_id']).listings_in_watchlist.all().count()
+    except: watchlist_count = 0
+    if watchlist_count > 0:
+        instance['watchlist_count'] = watchlist_count
+
+    try: winn_count = User.objects.get(pk=request.session['user_id']).won_actions.all().count()
+    except: winn_count = 0
+    if winn_count > 0:
+        instance['winn_count'] = winn_count
 
 class NewListingform(forms.Form):
     cat_choices= [(0, 'Categories')] + [(category.pk, category.category_name) for category in Category.objects.all()]
     title = forms.CharField(label="Title", max_length=30, widget=forms.TextInput(attrs={'placeholder': 'Listing Title', 'style': "width:100%; margin-bottom: 20px;"}))
-    category = forms.ChoiceField(label="Choose Category", required=False, widget=forms.Select(attrs={'style': "width:100%; margin-bottom: 20px;"}), choices=cat_choices)
+    category = forms.ChoiceField(label="Choose Category (optionally)", required=False, widget=forms.Select(attrs={'style': "width:100%; margin-bottom: 20px;"}), choices=cat_choices)
     description = forms.CharField(label="Description", widget=forms.Textarea(attrs={"rows":5, "cols":4, 'style': "width:100%;"}))
     price = forms.DecimalField(label="Price", decimal_places=2, widget=forms.NumberInput(attrs={'placeholder': '$ 0.00', 'style': "width:100%; margin-bottom: 20px;"}))
-    image = forms.URLField(label="Enter IMAGE's URL", required=False, widget=forms.URLInput(attrs={'placeholder': 'URL', 'style': "width:100%; margin-bottom: 20px;"}))
+    image = forms.URLField(label="Enter IMAGE's URL (optionally)", required=False, widget=forms.URLInput(attrs={'placeholder': 'URL', 'style': "width:100%; margin-bottom: 20px;"}))
 
     # if file upload model
     #image = forms.FileField(label="Upload Photo", widget=forms.FileInput(attrs={'style': "width:100%; margin-bottom: 20px;"}))
@@ -30,6 +39,13 @@ def index(request):
     forms = Listings.objects.filter(status='a').order_by('-date','-pk')
     if forms != None:
         instance['forms'] = forms
+
+    # number near watchlist
+    try: watchlist_count = User.objects.get(pk=request.session['user_id']).listings_in_watchlist.all().count()
+    except: watchlist_count = 0
+    if watchlist_count > 0:
+        instance['watchlist_count'] = watchlist_count
+
     return render(request, "auctions/index.html", instance)
 
 
@@ -120,6 +136,8 @@ def listing_view(request, listing_id):
         'max_bid_html': max_bid_html,
     }
 
+    watchlist_count(request, instance)
+
     # get comments uder listing
     comments = form.comments_on_listing.all().order_by('-date', '-pk')
     if len(comments) > 0: instance['comments'] = comments
@@ -139,13 +157,15 @@ def listing_view(request, listing_id):
             form.winner = max_bid_author
             form.status = 's'
             form.save()
+            watchlist_count(request, instance)
             instance['info'] = f"Sold to {max_bid_author.username} by {max_bid_html}! Please contact to winner. (Phone: {max_bid_author.phone})"
             return render(request, "auctions/listing.html", instance)
         if request.POST.get('delete', False):
             form.delete()
             instance = {}
+            watchlist_count(request, instance)
             instance['info'] = "Deleted"
-            return render(request, "auctions/index.html", instance)
+            return render(request, "auctions/delete.html", instance)
 
         # adding bid
         if request.POST.get('bid', False):
@@ -161,6 +181,7 @@ def listing_view(request, listing_id):
                 new_bid.save()
             except IntegrityError:
                 instance['message'] = "Invalid bid."
+                watchlist_count(request, instance)
                 return render(request, "auctions/listing.html", instance)
             proposed_bid_html = "${:,.2f}".format(proposed_bid)
             form.price = float(proposed_bid)
@@ -187,10 +208,13 @@ def listing_view(request, listing_id):
             elif watchlist_command !='' and watchlist_command == "remove":
                 form.in_users_watchlists.remove(current_user)
                 return HttpResponseRedirect(f"/listings/{form.pk}")
+
     return render(request, "auctions/listing.html", instance)
 
 @login_required(login_url='login')
 def create_new(request):
+    instance = {}
+    watchlist_count(request, instance)
     if request.method == "POST":
         form = NewListingform(request.POST) # + request.FILES
         if form.is_valid():
@@ -204,11 +228,10 @@ def create_new(request):
             try:
                 new_listing = Listings(title=title, description=description, price=price, author=author, image=image, status='a')
                 new_listing.save()
-            except IntegrityError: 
-                return render(request, "auctions/new_listing.html", {
-                "message": "Insert Error.",
-                'form': NewListingform(initial=initial)
-                })
+            except IntegrityError:
+                instance['form'] = NewListingform(initial=initial)
+                instance['message'] = "Insert Error."
+                return render(request, "auctions/new_listing.html", instance)
             try: category = Category.objects.get(pk=form.cleaned_data['category'])
             except: category = 0
             if category != 0: 
@@ -216,32 +239,59 @@ def create_new(request):
                 new_listing.save()
             link = f"/listings/{new_listing.pk}"
             return HttpResponseRedirect(link)
-        return render(request, "auctions/new_listing.html", {
-            "message": "Form Error. Please check image URL.",
-            'form': NewListingform()})
-
-    return render(request, "auctions/new_listing.html", {
-        "form" : NewListingform()
-    })
+        instance['message'] = "Form Error. Please check image URL."
+        instance['form'] = NewListingform()
+        watchlist_count(request, instance)
+        return render(request, "auctions/new_listing.html", instance)
+    instance['form'] = NewListingform()
+    return render(request, "auctions/new_listing.html", instance)
 
 @login_required(login_url='login')
 def watchlist(request):
     instance ={}
     current_user = User.objects.get(pk=request.session['user_id'])
-    forms = current_user.listings_in_watchlist.all().order_by('-date','-pk')
-    if forms != None:
-        instance['forms'] = forms
-    
+
     # remove from watchlist
     if request.method == 'POST':
         delete_listing_pk = request.POST.get('watchlist', False)
         form = current_user.listings_in_watchlist.get(pk=delete_listing_pk)
         form.in_users_watchlists.remove(current_user)
-        forms = current_user.listings_in_watchlist.all().order_by('-date','-pk')
-        if forms != None:
-            instance['forms'] = forms  
+        try: forms = current_user.listings_in_watchlist.all().order_by('-date','-pk')
+        except: pass
+        return HttpResponseRedirect(reverse('watchlist'))
+    
+    try: forms = current_user.listings_in_watchlist.all().order_by('-date','-pk')
+    except: forms = 0
+    if len(forms) > 0:
+        instance['forms'] = forms
+    watchlist_count(request, instance)
     return render(request, "auctions/watchlist.html", instance)
 
 
 def categories(request):
-    pass
+    instance = {}
+    watchlist_count(request, instance)
+    categories = Category.objects.all()
+    instance['categories'] = categories
+    if request.method == 'POST':
+        cat_pk = request.POST.get('chosen_category', False)
+        if cat_pk != '0':
+            category = Category.objects.get(pk=cat_pk)
+            forms = category.listings_on_category.all().order_by('-date','-pk')
+            instance['forms'] = forms
+            return render(request, 'auctions/categories.html', instance)
+        else: 
+            no_cat_listings = Listings.objects.filter(category=None)
+            instance['forms'] = no_cat_listings
+            return render(request, 'auctions/categories.html', instance)
+    return render(request, 'auctions/categories.html', instance)
+
+@login_required(login_url='login')
+def winn(request):
+    instance = {}
+    watchlist_count(request, instance)
+    current_user = User.objects.get(pk=request.session['user_id'])
+    winned_listings = current_user.won_actions.all()
+    if winned_listings != None: 
+        instance['forms'] = winned_listings
+    return render(request, 'auctions/winn.html', instance)

@@ -45,6 +45,8 @@
             <p>
                 {% if max_bid == 0 %}
                     <div>0 bid(s) so far. Yoyr bid is the current bid.</div>
+                {% else %}
+                    <div>{{ max_bid_html }} is a current max bid.</div>
                 {% endif %}
                 {% if user.is_authenticated %}
                     {% if form.status == 'a' %}
