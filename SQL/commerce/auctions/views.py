@@ -197,7 +197,7 @@ def listing_view(request, listing_id):
 
         # adding(removing) to watchlist
         if request.POST.get('watchlist', False):
-            watchlist_command = request.POST.get('watchlist', False) # TRY GET or chenge or replase bid post aper!!!!!!
+            watchlist_command = request.POST.get('watchlist', False)
             if watchlist_command !='' and watchlist_command == "add":
                 form.in_users_watchlists.add(current_user)
                 return HttpResponseRedirect(f"/listings/{form.pk}")
