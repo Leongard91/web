@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang='en'>
+    <head>
+        <title>Single page</title>
+        <style>
+        </style>
+        <script>
+
+            function showSection(section) {
+                fetch(`/sections/${section}`)
+                .then(response => response.text())
+                .then(text => {
+                    console.log(text);
+                    document.querySelector('#content').innerHTML = text;
+                });
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll('button').forEach(button => {
+                button.onclick = function () {
+                    showSection(this.dataset.section);
+                }
+            });
+        });
+
+    </script>
+    <body>
+        <h1>Hello!</h1>
+        <button data-section="1">Page 1</button>
+        <button data-section="2">Page 2</button>
+        <button data-section="3">Page 3</button>
+        <div id='content'>
+        </div>
+    </body>
+</html>
