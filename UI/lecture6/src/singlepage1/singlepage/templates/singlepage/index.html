@@ -16,12 +16,12 @@
             }
 
             document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll('button').forEach(button => {
-                button.onclick = function () {
-                    showSection(this.dataset.section);
-                }
+                document.querySelectorAll('button').forEach(button => {
+                    button.onclick = function () {
+                        showSection(this.dataset.section);
+                    }
+                });
             });
-        });
 
     </script>
     <body>
