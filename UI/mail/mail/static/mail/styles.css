@@ -2,7 +2,37 @@ textarea {
     min-height: 400px;
 }
 
-.box {
-    border: 5px solid black;
-    background-color: aqua;
+.row {
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+}
+
+.row > div {
+    min-width: 100px;
+    padding: 5px;
+}
+
+.row > .col {
+    text-align: right;
+    color: rgba(0, 0, 0, 0.473);
+    font-size: 15px;
+}
+
+.row > .col1 {
+    font-weight: bold;
+}
+
+.head_value {
+    display: inline-block;
+    margin-left: 8px;
+}
+
+.btn_row{
+    width: 100%;
+    margin-bottom: 55px;
+}
+.btn_row button{
+    display: inline-block;
+    float: left;
 }

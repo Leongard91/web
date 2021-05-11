@@ -30,6 +30,24 @@
             <input type="submit" class="btn btn-primary"/>
         </form>
     </div>
+
+    <div id='email-view'>
+        <div id="email_header">
+            <div id="head_row"><b>From:</b><div class="head_value" id='sender'></div></div>
+            <div id="head_row"><b>To:</b><div class="head_value" id='to'></div></div>
+            <div id="head_row"><b>Subject:</b><div class="head_value" id='subject'></div></div>
+            <div id="head_row"><b>Timestamp:</b><div class="head_value" id='timestamp'></div></div>
+            <div class='btn_row'>
+                <button class="btn btn-sm btn-outline-primary" id='reply'>Reply</button>
+                <button class="btn btn-sm btn-outline-primary" style="margin-left: 5px;" id='archive'>Archive</button>
+                <button class="btn btn-sm btn-outline-primary" style="margin-left: 5px;" id='unarchive'>Unarchive</button>
+            </div>
+        </div>
+        <hr>
+        <div id="email_body"></div>
+
+    </div>
+
 {% endblock %}
 
 {% block script %}
