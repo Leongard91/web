@@ -30,16 +30,17 @@ function compose_email(email) {
     } else {
       document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
     }
-    document.querySelector('#compose-body').value = `\n\n\n<p>On ${email.timestamp} ${email.sender} wrote: \n${email.body}<p>`; //!!!!!!!!!!!!!!!!!!!!
+    document.querySelector('#compose-body').value = `\n\n\nOn ${email.timestamp} ${email.sender} wrote: \n${email.body}`;
   }
 
   document.querySelector('#compose-form').onsubmit = () => {
+    let n_body = document.querySelector('#compose-body').value.replace(/\n/g, '<br>');
     fetch('/emails', {
       method: 'POST',
       body: JSON.stringify({
         recipients: document.querySelector('#compose-recipients').value,
         subject: document.querySelector('#compose-subject').value,
-        body: document.querySelector('#compose-body').value
+        body: n_body
       })
     })
     .then(response => response.json())
