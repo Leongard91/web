@@ -1,10 +1,10 @@
+import os
+import pathlib
+import unittest
+
 from selenium import webdriver
-from selenium.common.exceptions import InvalidSessionIdException
 
-driver = webdriver.Chrome(executable_path=r'C:\Users\Саша\Desktop\web\Testing\lecture7\selenium\chromedriver.exe')
-print("Current session is {}".format(driver.session_id))
+def file_uri(filename):
+    return pathlib.Path(os.path.abspath(filename)).as_uri()
 
-try:
-    driver.get("https://www.google.com/")
-except Exception as e:
-    print(e.message)
+print(file_uri('counter.html'))
