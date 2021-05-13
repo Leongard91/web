@@ -3,12 +3,32 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django import forms
 
-from .models import User
+from .models import User, Post, Comment
+
+class NewPostForm(forms.Form):
+    post = forms.CharField(label="New Post", max_length=255, widget=forms.Textarea(attrs={'class': 'post_form'}))
 
 
 def index(request):
-    return render(request, "network/index.html")
+    posts = Post.objects.all().order_by('-timestamp')
+    if request.method == "POST":
+        if request.user.is_authenticated and request.POST['post']:
+            text = request.POST['post']
+            try: Post.objects.create(author=request.user, text=text)
+            except: HttpResponse('Insert Error')
+            return HttpResponseRedirect(reverse('index'))
+        return render(request, "network/index.html", {
+            'message': "Could not post empty.",
+            'post_form': NewPostForm(),
+            'posts': posts
+        })
+    # How to implemment likes?!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    return render(request, "network/index.html", {
+        'post_form': NewPostForm(),
+        'posts': posts
+    })
 
 
 def login_view(request):

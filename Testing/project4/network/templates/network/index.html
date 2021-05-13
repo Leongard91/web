@@ -2,7 +2,39 @@
 {% load static %}
 
 {% block body %}
+    <h1>All Posts</h1>
+
+    {% if message %}
+        <div id='message' class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    {% if info %}
+        <div id='info' class="alert alert-primary" style="text-align: center;"><h2>{{ info }}</h2></div>
+    {% endif %}
+
+    <div class="form_area">
+        <form method="POST">
+            {% csrf_token %}
+            {{ post_form }}
+            <input type="submit" class="btn btn-primary" id="post_button" value="Post">
+        </form>
+    </div>
     <div id="posts_view">
+        {% if posts %}
+            {% for post in posts %}
+                <div class="post_area">
+                    <h4>{{ post.author.username }}</h4>
+                    {% if user.is_authenticated and user.pk == post.author.pk %}
+                    <a href="">Edit</a>
+                    {% endif %}
+                    {{ post.text }}
+                    {{ post.timestamp }}
+                    <button><img src="https://www.pinclipart.com/picdir/middle/87-877828_save-the-heart-by-ofirma85-instagram-like-icon.png" alt="like" width="15px"></button>
+                    {{ post.likes.all().count() }}
+                    <a href="">Comment</a>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
 
     <script src="{% static 'network/index.js' %}" type="text/babel"></script>
