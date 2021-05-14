@@ -5,8 +5,8 @@ from django.db.models.fields.related import ForeignKey
 
 
 class User(AbstractUser):
-    followers = models.ManyToManyField("self", blank=True, null=True)
-    follow_to = models.ManyToManyField('self', blank=True, null=True)
+    followers = models.ManyToManyField("self", blank=True, null=True, symmetrical=False, related_name='+')
+    follow_to = models.ManyToManyField('self', blank=True, null=True, symmetrical=False, related_name='+')
     def __str__(self):
         return f"Id:{self.pk}; {self.username}; followers: {self.followers.all().count()}; follow_to: {self.follow_to.all().count()}; posts: {self.posted_posts.all().count()}"
 

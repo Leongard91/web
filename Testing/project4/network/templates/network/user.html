@@ -2,38 +2,34 @@
 {% load static %}
 
 {% block body %}
-    <h1>All Posts</h1>
-
-    {% if message %}
-        <div id='message' class="alert alert-danger">{{ message }}</div>
-    {% endif %}
-
-    {% if info %}
-        <div id='info' class="alert alert-primary" style="text-align: center;"><h2>{{ info }}</h2></div>
-    {% endif %}
-
+    <h1>Profile</h1>
     <div class="form_area">
-        <form method="POST">
-            {% csrf_token %}
-            {{ post_form }}
-            <input type="submit" class="btn btn-primary" id="post_button" value="Post">
-        </form>
+        <h3>{{ account.username }}</h3>
+        <p>
+            <div>Posted: {{ posts_count }} post(s)</div>
+            <div>Followers: {{ followers }} peoples</div>
+            <div>Follow to: {{ follow_to }} peoples</div>
+            <form method="POST">
+                {% csrf_token %}
+                {% if not on_own_page %}
+                    {% if not is_followed %}
+                        <button class="btn btn-primary" name="follow_button" value="follow">Follow</button>
+                    {% else %}
+                        <button class="btn btn-secondary" name="follow_button" value="unfollow">Unfollow</button>
+                    {% endif %}
+                {% endif %}
+            </form>
+        </p>
     </div>
 
-    <div class="form_area" style="margin-top: 10px;">
-        <form method="PUT">
-            <textarea name="post" cols="40" rows="10" class="post_form" maxlength="255" id="id_post"></textarea>
-            <input type="submit" class="btn btn-primary" id="post_button" value="Save">
-        </form>
-    </div>
-
+    <h2 style="margin: 12px">{{ account.username }}'s Posts:</h2>
     <div id="posts_view" class="post_view">
         {% if posts %}
             {% for post in posts %}
                 <div class="post_area">
-                    <p><h4><a href="/user/{{ post.author.pk }}" style='color:black'>{{ post.author.username }}</a></h4></p>
+                    <p><h4>{{ post.author.username }}</h4></p>
                     {% if user.is_authenticated and user.pk == post.author.pk %}
-                        <button type="button" class="btn btn-link" style="padding: 0%;" value="{{ post.pk }}">Edit</button>
+                        <button type="button" class="btn btn-link" style="padding: 0%;">Edit</button>
                     {% endif %}
                     <div class="lh-sm">{{ post.text }}</div>
                     <div class="grey">{{ post.timestamp }}</div>
@@ -43,7 +39,6 @@
             {% endfor %}
         {% endif %}
     </div>
-
 
     <nav aria-label="Page navigation example" style="margin: 10px; text-align: center; margin-left: 45%;">
         <ul class="pagination">
