@@ -32,7 +32,9 @@
     padding-left: 3%;
     padding-right: 3%;
     padding-bottom: 2.5%;
+    min-height: 216px;
 }
+
 .lh-sm {
     font-size: 20px;
     font-weight: 500;
@@ -40,4 +42,14 @@
 
 .grey {
     color: #7c7c7d;
+}
+
+.edit_area {
+    border: 1px solid #7c7c7d57;
+    border-radius: 5px; 
+    width: 100%;
+    max-height: 70px;
+    font-size: 18px;
+    padding: 5px;
+    margin-top: 10px;
 }
