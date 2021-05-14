@@ -30,7 +30,7 @@
                     {{ post.text }}
                     {{ post.timestamp }}
                     <button><img src="https://www.pinclipart.com/picdir/middle/87-877828_save-the-heart-by-ofirma85-instagram-like-icon.png" alt="like" width="15px"></button>
-                    {{ post.likes.all().count() }}
+                    {{ post.likes }}
                     <a href="">Comment</a>
                 </div>
             {% endfor %}
