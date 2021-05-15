@@ -1,11 +1,13 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 from .models import User, Post, Comment
 
@@ -14,12 +16,22 @@ class NewPostForm(forms.Form):
 
 
 def index(request):
-    posts = Post.objects.all().order_by('-timestamp')
+    posts_no_likes_count = Post.objects.all().order_by('-timestamp')
+
+    # Init like counter
+    posts = []
+    for post in posts_no_likes_count:
+        likes_count = post.likes.all().count()
+        liked_post = False
+        if request.user in post.likes.all(): liked_post = True
+        posts.append((post, likes_count, liked_post))
 
     # Paginator
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     posts = paginator.get_page(page_number)
+
+
 
     # add new post
     if request.method == "POST":
@@ -50,7 +62,15 @@ def following(request):
             except: continue # If two posts with identical timestamp
     
     d = dict(sorted(unsorted_d.items(), reverse=True))
-    posts = list(d.values())
+    posts_no_likes_count = list(d.values())
+
+    # Init like counter
+    posts = []
+    for post in posts_no_likes_count:
+        likes_count = post.likes.all().count()
+        liked_post = False
+        if request.user in post.likes.all(): liked_post = True
+        posts.append((post, likes_count, liked_post))
 
     # Paginator
     paginator = Paginator(posts, 10)
@@ -74,8 +94,16 @@ def user_view(request, id):
             request.user.follow_to.remove(account)
         return HttpResponseRedirect(f'/user/{account.pk}')
 
-    posted_posts = account.posted_posts.all().order_by('-timestamp')
-    instance['posts_count'] = posted_posts.count()
+    posted_posts_no_likes_count = account.posted_posts.all().order_by('-timestamp')
+    instance['posts_count'] = posted_posts_no_likes_count.count()
+
+    # Init like counter
+    posted_posts = []
+    for post in posted_posts_no_likes_count:
+        likes_count = post.likes.all().count()
+        liked_post = False
+        if request.user in post.likes.all(): liked_post = True
+        posted_posts.append((post, likes_count, liked_post))
 
     # Paginator
     paginator = Paginator(posted_posts, 10)
@@ -154,3 +182,29 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+@csrf_exempt
+def post_reduction(request, post_id):
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        post_to_change = Post.objects.get(pk=post_id)
+        post_to_change.text = data['new_text']
+        post_to_change.save()
+        return HttpResponse(status=200)
+
+@csrf_exempt
+def like(request):
+    current_user = request.user
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        liked_post = Post.objects.get(pk=data['post_id'])
+        if data['movement'] == 'add':
+            liked_post.likes.add(current_user)
+        if data['movement'] == 'dell':
+            liked_post.likes.remove(current_user)
+        likes_count = liked_post.likes.count()
+        return JsonResponse({
+            'post_id' : data['post_id'],
+            'likes_count' : likes_count
+        }, status=200)
