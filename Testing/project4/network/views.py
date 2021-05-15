@@ -31,8 +31,6 @@ def index(request):
     page_number = request.GET.get('page')
     posts = paginator.get_page(page_number)
 
-
-
     # add new post
     if request.method == "POST":
         if request.user.is_authenticated and request.POST['post']:
@@ -117,7 +115,6 @@ def user_view(request, id):
     instance['follow_to'] = follow_to
     instance['posts'] = posted_posts
     
-
     # check is current user on his own page
     on_own_page = False
     if account.pk == request.user.pk: on_own_page = True
@@ -182,7 +179,6 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
-
 
 @csrf_exempt
 def post_reduction(request, post_id):
