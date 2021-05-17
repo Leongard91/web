@@ -9,6 +9,7 @@ from django.core.paginator import Paginator
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+
 from .models import User, Post, Comment
 
 class NewPostForm(forms.Form):
@@ -23,8 +24,9 @@ def index(request):
     for post in posts_no_likes_count:
         likes_count = post.likes.all().count()
         liked_post = False
+        post_comments = [comment for comment in post.comments.all().order_by('-timestamp')]
         if request.user in post.likes.all(): liked_post = True
-        posts.append((post, likes_count, liked_post))
+        posts.append((post, likes_count, liked_post, post_comments))
 
     # Paginator
     paginator = Paginator(posts, 10)
@@ -67,8 +69,9 @@ def following(request):
     for post in posts_no_likes_count:
         likes_count = post.likes.all().count()
         liked_post = False
+        post_comments = [comment for comment in post.comments.all().order_by('-timestamp')]
         if request.user in post.likes.all(): liked_post = True
-        posts.append((post, likes_count, liked_post))
+        posts.append((post, likes_count, liked_post, post_comments))
 
     # Paginator
     paginator = Paginator(posts, 10)
@@ -100,8 +103,9 @@ def user_view(request, id):
     for post in posted_posts_no_likes_count:
         likes_count = post.likes.all().count()
         liked_post = False
+        post_comments = [comment for comment in post.comments.all().order_by('-timestamp')]
         if request.user in post.likes.all(): liked_post = True
-        posted_posts.append((post, likes_count, liked_post))
+        posted_posts.append((post, likes_count, liked_post, post_comments))
 
     # Paginator
     paginator = Paginator(posted_posts, 10)
@@ -203,4 +207,20 @@ def like(request):
         return JsonResponse({
             'post_id' : data['post_id'],
             'likes_count' : likes_count
+        }, status=200)
+
+@csrf_exempt
+def comment(request):
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        commented_post = Post.objects.get(pk=data['post_id'])
+        comment = Comment.objects.create(on_post=commented_post, author=request.user, text=data['comment_text'])
+        comment.save()
+        time = comment.timestamp
+        formated_time = time.strftime('%b %d, %Y, %#I:%M %p')
+        return JsonResponse({
+            'timestamp' : formated_time,
+            'author' : comment.author.username,
+            'text' : comment.text,
+            'new_comment_id': comment.pk
         }, status=200)

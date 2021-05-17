@@ -48,8 +48,10 @@
     border: 1px solid #7c7c7d57;
     border-radius: 5px; 
     width: 100%;
-    max-height: 70px;
     font-size: 18px;
-    padding: 5px;
-    margin-top: 5%;
+    max-height: 60px;
+}
+
+.comment_buttons {
+    margin: 0px;
 }

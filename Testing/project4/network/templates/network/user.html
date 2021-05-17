@@ -25,20 +25,33 @@
     <h2 style="margin: 12px">{{ account.username }}'s Posts:</h2>
     <div id="posts_view" class="post_view">
         {% if posts %}
-            {% for post, likes_count, liked_post in posts %}
+            {% for post, likes_count, liked_post, post_comments in posts %}
                 <div class="post_area" id="post_{{ post.pk }}" data-post_id="{{ post.pk }}">
                     <p><h4><a href="/user/{{ post.author.pk }}" style='color:black'>{{ post.author.username }}</a></h4></p>
                     {% if user.is_authenticated and user.pk == post.author.pk %}
                         <button type="button" id="edit" class="btn btn-link" style="padding: 0%;" value="{{ post.pk }}">Edit</button>
                     {% endif %}
-                    <div class="lh-sm" id='post_text_{{ post.pk }}'>{{ post.text }}</div>
+                    <div id="edit_box_{{ post.pk }}">
+                        <div class="lh-sm" id='post_text_{{ post.pk }}'>{{ post.text }}</div>
+                    </div>
                     <div class="grey">{{ post.timestamp }}</div>
                     {% if liked_post %}
                         <div class="grey"><img style="vertical-align: -12%; margin-right: 5px;" src="{% static 'network/filled_hart.png' %}" alt="like" width="18px" style="margin-right: 3px;" class="hart" id='hart_{{ post.pk }}' data-post_id="{{ post.pk }}" data-liked="true" data-is_auth="{{ user.is_authenticated }}"><b id="likes_count_{{ post.pk }}">{{ likes_count }}</b></div> 
                     {% else %}
                         <div class="grey"><img style="vertical-align: -12%; margin-right: 5px;" src="{% static 'network/empty_hart.png' %}" alt="like" width="18px" style="margin-right: 3px;" class="hart" id='hart_{{ post.pk }}' data-post_id="{{ post.pk }}" data-liked="false" data-is_auth="{{ user.is_authenticated }}"><b id="likes_count_{{ post.pk }}">{{ likes_count }}</b></div> 
                     {% endif %}
-                    <div class="grey">Comment</div>
+                    
+                    {% if user.is_authenticated %}
+                        <div class="btn btn-link" style="padding: 0%;" id="add_comment" data-post_id="{{ post.pk }}">Comment</div>
+                    {% endif %}
+                    <div class="" id="comments_{{ post.pk }}"></div>
+                    {% for comment in post_comments %}
+                        <p id="comment_{{ comment.pk }}">
+                            <div style="font-size: smaller;">{{ comment.timestamp }}</div>
+                            <div>From <b>{{ comment.author.username }}</b>: {{ comment.text }}</div>
+                        </p>
+                    {% endfor %}
+                    
                 </div>
             {% endfor %}
         {% endif %}
